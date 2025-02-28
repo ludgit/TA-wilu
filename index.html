@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EduTimer - Manajemen Waktu Belajar</title>
 
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- SweetAlert2 CDN -->
+  <!-- SweetAlert2 (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 p-4">
 
   <!-- Konten Utama -->
   <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 relative">
-    
+
     <!-- Bagian Timer -->
     <div id="timerSection" class="mb-8">
       <div id="timer" class="text-5xl font-bold text-white bg-red-500 p-6 rounded-lg shadow-md text-center">
@@ -24,51 +24,27 @@
 
       <!-- Tombol Timer + Tombol Mode Fokus -->
       <div class="flex flex-wrap justify-center gap-4 mt-4">
-        <button id="startBtn" 
-                class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700">
-          Mulai
-        </button>
-        <button id="pauseBtn" 
-                class="bg-yellow-500 text-white px-6 py-2 rounded-lg shadow hover:bg-yellow-600">
-          Pause
-        </button>
-        <button id="resetBtn" 
-                class="bg-red-500 text-white px-6 py-2 rounded-lg shadow hover:bg-red-600">
-          Reset
-        </button>
-        <button id="focusModeBtn" 
-                class="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow hover:bg-indigo-600">
-          Mode Fokus
-        </button>
+        <button id="startBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700">Mulai</button>
+        <button id="pauseBtn" class="bg-yellow-500 text-white px-6 py-2 rounded-lg shadow hover:bg-yellow-600">Pause</button>
+        <button id="resetBtn" class="bg-red-500 text-white px-6 py-2 rounded-lg shadow hover:bg-red-600">Reset</button>
+        <button id="focusModeBtn" class="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow hover:bg-indigo-600">Mode Fokus</button>
       </div>
     </div>
 
-    <!-- Pengaturan Waktu Belajar (Menggunakan Form agar ENTER bisa submit) -->
+    <!-- Form Pengaturan Waktu Belajar -->
     <form id="settingsForm" class="nonFocus mb-8">
       <h2 class="text-xl font-semibold text-gray-700 mb-2">Pengaturan Waktu Belajar</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-gray-600">Waktu Belajar (menit):</label>
-          <input id="studyTime" 
-                 type="number" 
-                 min="1" 
-                 value="25" 
-                 class="mt-1 border rounded w-full p-2" 
-                 required />
+          <input id="studyTime" type="number" min="1" value="25" class="mt-1 border rounded w-full p-2" required />
         </div>
         <div>
           <label class="block text-gray-600">Waktu Istirahat (menit):</label>
-          <input id="breakTime" 
-                 type="number" 
-                 min="1" 
-                 value="5" 
-                 class="mt-1 border rounded w-full p-2"
-                 required />
+          <input id="breakTime" type="number" min="1" value="5" class="mt-1 border rounded w-full p-2" required />
         </div>
       </div>
-      <button id="saveSettings" 
-              type="submit"
-              class="bg-green-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-green-600">
+      <button id="saveSettings" type="submit" class="bg-green-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-green-600">
         Simpan Pengaturan
       </button>
     </form>
@@ -77,19 +53,9 @@
     <div id="tasksSection" class="nonFocus mb-8">
       <h2 class="text-xl font-semibold text-gray-700 mb-2">Tambah Tugas</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Input Mapel -->
-        <input id="taskMapel" 
-               type="text" 
-               placeholder="Mapel (misal: IPA, MTK, dll.)" 
-               class="border p-2 rounded w-full" />
-        <!-- Input Tugas -->
-        <input id="taskDescription" 
-               type="text" 
-               placeholder="Tugas (misal: Mencatat Bab 1)" 
-               class="border p-2 rounded w-full" />
-        <!-- Pilih Hari -->
-        <select id="taskDay" 
-                class="border p-2 rounded w-full">
+        <input id="taskMapel" type="text" placeholder="Mapel (misal: IPA, MTK, dll.)" class="border p-2 rounded w-full" />
+        <input id="taskDescription" type="text" placeholder="Tugas (misal: Mencatat Bab 1)" class="border p-2 rounded w-full" />
+        <select id="taskDay" class="border p-2 rounded w-full">
           <option value="" disabled selected>Pilih Hari</option>
           <option value="Senin">Senin</option>
           <option value="Selasa">Selasa</option>
@@ -99,17 +65,11 @@
           <option value="Sabtu">Sabtu</option>
           <option value="Minggu">Minggu</option>
         </select>
-        <!-- Deadline -->
-        <input id="taskDeadline" 
-               type="date" 
-               class="border p-2 rounded w-full" />
+        <input id="taskDeadline" type="date" class="border p-2 rounded w-full" />
       </div>
-      <button id="addTask" 
-              class="bg-blue-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-blue-600">
+      <button id="addTask" class="bg-blue-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-blue-600">
         Tambah Tugas
       </button>
-
-      <!-- Daftar Tugas -->
       <ul id="taskList" class="mt-4 space-y-2"></ul>
     </div>
 
@@ -117,12 +77,8 @@
     <div id="scheduleSection" class="nonFocus">
       <h2 class="text-xl font-semibold text-gray-700 mb-2">Jadwal Pelajaran</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input id="subjectInput" 
-               type="text" 
-               placeholder="Nama Mapel..." 
-               class="border p-2 rounded w-full" />
-        <select id="subjectDay" 
-                class="border p-2 rounded w-full">
+        <input id="subjectInput" type="text" placeholder="Nama Mapel..." class="border p-2 rounded w-full" />
+        <select id="subjectDay" class="border p-2 rounded w-full">
           <option value="" disabled selected>Pilih Hari</option>
           <option value="Senin">Senin</option>
           <option value="Selasa">Selasa</option>
@@ -133,14 +89,11 @@
           <option value="Minggu">Minggu</option>
         </select>
       </div>
-      <button id="addSubject" 
-              class="bg-purple-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-purple-600">
+      <button id="addSubject" class="bg-purple-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-purple-600">
         Tambah Pelajaran
       </button>
       <div class="mt-4">
-        <h3 class="text-lg font-semibold text-gray-700" id="scheduleTitle">
-          Jadwal untuk hari ini
-        </h3>
+        <h3 class="text-lg font-semibold text-gray-700" id="scheduleTitle">Jadwal untuk hari ini</h3>
         <ul id="subjectList" class="mt-2 space-y-2"></ul>
       </div>
     </div>
@@ -150,36 +103,37 @@
     // ========== AUDIO NOTIFIKASI ========== 
     const endSound = new Audio('assets/musics/end.mp3');
 
-    // ========== TIMER LOGIC ==========
+    // ========== VARIABEL TIMER ========== 
     let timerElement = document.getElementById('timer');
     let startBtn = document.getElementById('startBtn');
     let pauseBtn = document.getElementById('pauseBtn');
     let resetBtn = document.getElementById('resetBtn');
-
     let studyTimeInput = document.getElementById('studyTime');
     let breakTimeInput = document.getElementById('breakTime');
     let settingsForm = document.getElementById('settingsForm');
 
-    let studyDuration = parseInt(studyTimeInput.value) * 60;
-    let breakDuration = parseInt(breakTimeInput.value) * 60;
-    let timeInSeconds = studyDuration;
-    let timerInterval;
-    let isRunning = false;
-    let isStudySession = true; // true: sesi belajar, false: sesi istirahat
+    let studyDuration = parseInt(studyTimeInput.value) * 60;  // durasi belajar (detik)
+    let breakDuration = parseInt(breakTimeInput.value) * 60;  // durasi istirahat (detik)
+    let timeInSeconds = studyDuration;                        // waktu sisa saat ini
+    let isRunning = false;                                    // apakah timer sedang berjalan
+    let isStudySession = true;                                // true = sesi belajar, false = sesi istirahat
 
-    // Format Waktu
+    // Variabel untuk pendekatan time-based
+    let sessionStartTimestamp = null;  // kapan sesi dimulai (Date.now())
+    let sessionEndTimestamp = null;    // kapan sesi berakhir (sessionStart + timeInSeconds * 1000)
+    let timerInterval = null;          // menyimpan ID setInterval
+
+    // ========== FUNGSI TIMER ========== 
     function formatTime(seconds) {
-      let minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
-      let remainingSeconds = (seconds % 60).toString().padStart(2, '0');
-      return `${minutes}:${remainingSeconds}`;
+      let m = Math.floor(seconds / 60).toString().padStart(2, '0');
+      let s = (seconds % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
     }
 
-    // Update Tampilan Timer
-    function updateTimer() {
+    function updateTimerElement() {
       timerElement.innerText = formatTime(timeInSeconds);
     }
 
-    // Ubah Warna Timer (Merah = Belajar, Hijau = Istirahat)
     function updateTimerBackground() {
       if (isStudySession) {
         timerElement.classList.remove('bg-green-500');
@@ -190,7 +144,50 @@
       }
     }
 
-    // Menampilkan SweetAlert
+    // Mengecek waktu setiap interval (500ms)
+    function checkTime() {
+      let now = Date.now();
+      let diff = sessionEndTimestamp - now; // selisih milidetik
+      if (diff <= 0) {
+        // Waktu habis
+        clearInterval(timerInterval);
+        isRunning = false;
+        timeInSeconds = 0;
+        updateTimerElement();
+        switchSession();  // ganti sesi
+      } else {
+        timeInSeconds = Math.ceil(diff / 1000); 
+        updateTimerElement();
+      }
+    }
+
+    // Mulai timer dengan time-based approach
+    function startTimer() {
+      if (!isRunning) {
+        // Tetapkan sessionStart dan sessionEnd
+        sessionStartTimestamp = Date.now();
+        sessionEndTimestamp = sessionStartTimestamp + (timeInSeconds * 1000);
+        timerInterval = setInterval(checkTime, 500); 
+        isRunning = true;
+      }
+    }
+
+    function pauseTimer() {
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+      }
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      isStudySession = true;
+      timeInSeconds = studyDuration;
+      updateTimerBackground();
+      updateTimerElement();
+    }
+
+    // Menampilkan alert SweetAlert2 (mengembalikan Promise)
     function showAlert(title, text, icon='info') {
       return Swal.fire({
         title: title,
@@ -200,9 +197,9 @@
       });
     }
 
-    // Berpindah Sesi (Belajar <-> Istirahat)
+    // Pindah Sesi (Belajar <-> Istirahat)
     function switchSession() {
-      // Putar suara notifikasi setiap sesi berakhir
+      // mainkan audio
       endSound.play().catch(err => {
         console.log("Audio belum bisa diputar otomatis:", err);
       });
@@ -212,12 +209,11 @@
         isStudySession = false;
         timeInSeconds = breakDuration;
         updateTimerBackground();
-        updateTimer();
-        // Tampilkan Alert, jika user klik OK -> langsung start Timer
+        updateTimerElement();
         showAlert('Waktu belajar selesai!', 'Mulai istirahat.', 'success')
           .then((result) => {
             if (result.isConfirmed) {
-              startTimer();
+              startTimer(); 
             }
           });
       } else {
@@ -225,8 +221,7 @@
         isStudySession = true;
         timeInSeconds = studyDuration;
         updateTimerBackground();
-        updateTimer();
-        // Tampilkan Alert, jika user klik OK -> langsung start Timer
+        updateTimerElement();
         showAlert('Istirahat selesai!', 'Mulai belajar.', 'success')
           .then((result) => {
             if (result.isConfirmed) {
@@ -236,51 +231,13 @@
       }
     }
 
-    // Mulai Timer
-    function startTimer() {
-      if (!isRunning) {
-        timerInterval = setInterval(() => {
-          if (timeInSeconds > 0) {
-            timeInSeconds--;
-            updateTimer();
-          } else {
-            clearInterval(timerInterval);
-            isRunning = false; 
-            switchSession();
-          }
-        }, 1000);
-        isRunning = true;
-      }
-    }
-
-    // Jeda Timer
-    function pauseTimer() {
-      clearInterval(timerInterval);
-      isRunning = false;
-    }
-
-    // Reset Timer ke Sesi Belajar
-    function resetTimer() {
-      clearInterval(timerInterval);
-      isRunning = false;
-      isStudySession = true;
-      timeInSeconds = studyDuration;
-      updateTimerBackground();
-      updateTimer();
-    }
-
-    // Simpan Pengaturan
-    function saveSettingsHandler() {
+    // Saat form pengaturan disubmit
+    settingsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
       studyDuration = parseInt(studyTimeInput.value) * 60;
       breakDuration = parseInt(breakTimeInput.value) * 60;
       resetTimer();
       showAlert('Pengaturan Disimpan', 'Waktu belajar & istirahat telah diperbarui.', 'success');
-    }
-
-    // Event Submit Form Pengaturan
-    settingsForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      saveSettingsHandler();
     });
 
     // Tombol Timer
@@ -288,15 +245,15 @@
     pauseBtn.addEventListener('click', pauseTimer);
     resetBtn.addEventListener('click', resetTimer);
 
-    // Inisialisasi Timer
-    updateTimer();
+    // Inisialisasi awal
+    updateTimerElement();
     updateTimerBackground();
 
-    // ========== DATA & VARIABEL UNTUK TUGAS & JADWAL ==========
-    let subjectSchedule = []; // Array untuk jadwal pelajaran
-    let tasks = []; // Array untuk tugas
+    // ========== BAGIAN TUGAS & JADWAL ========== 
+    let subjectSchedule = []; 
+    let tasks = []; 
 
-    // ========== BAGIAN TUGAS ==========
+    // Input Tugas
     let taskMapelInput = document.getElementById('taskMapel');
     let taskDescriptionInput = document.getElementById('taskDescription');
     let taskDaySelect = document.getElementById('taskDay');
@@ -313,11 +270,12 @@
       tasks.forEach((t, index) => {
         let li = document.createElement('li');
         li.classList = "bg-gray-200 p-2 rounded flex justify-between items-center";
-        let taskInfo = document.createElement('div');
         let deadlineText = t.deadline ? new Date(t.deadline).toLocaleDateString() : '-';
-        taskInfo.innerHTML = `
-          <span class="font-semibold">${t.mapel}</span> - ${t.tugas}<br>
-          <small class="text-gray-600">Hari: ${t.day}, Deadline: ${deadlineText}</small>
+        li.innerHTML = `
+          <div>
+            <span class="font-semibold">${t.mapel}</span> - ${t.tugas}<br>
+            <small class="text-gray-600">Hari: ${t.day}, Deadline: ${deadlineText}</small>
+          </div>
         `;
         let deleteBtn = document.createElement('button');
         deleteBtn.innerText = "X";
@@ -325,9 +283,8 @@
         deleteBtn.onclick = () => {
           tasks.splice(index, 1);
           displayAllTasks();
-          displaySubjects(); // Update jadwal
+          displaySubjects();
         };
-        li.appendChild(taskInfo);
         li.appendChild(deleteBtn);
         taskList.appendChild(li);
       });
@@ -339,24 +296,19 @@
       let dayVal = taskDaySelect.value;
       let deadlineVal = taskDeadlineInput.value;
       if (mapelVal && tugasVal && dayVal) {
-        tasks.push({
-          mapel: mapelVal,
-          tugas: tugasVal,
-          day: dayVal,
-          deadline: deadlineVal
-        });
+        tasks.push({ mapel: mapelVal, tugas: tugasVal, day: dayVal, deadline: deadlineVal });
         taskMapelInput.value = "";
         taskDescriptionInput.value = "";
         taskDaySelect.selectedIndex = 0;
         taskDeadlineInput.value = "";
         displayAllTasks();
-        displaySubjects(); // Update jadwal
+        displaySubjects();
       } else {
         showAlert('Gagal Menambah Tugas', 'Masukkan mapel, tugas, dan hari dengan benar.', 'error');
       }
     });
 
-    // ========== BAGIAN JADWAL PELAJARAN ==========
+    // Jadwal Pelajaran
     let subjectInput = document.getElementById('subjectInput');
     let subjectDaySelect = document.getElementById('subjectDay');
     let addSubjectBtn = document.getElementById('addSubject');
@@ -380,14 +332,13 @@
 
     function getCurrentScheduleDay() {
       let now = new Date();
-      // Jika sudah malam (≥18:00), tampilkan jadwal untuk hari berikutnya
+      // Jika sudah malam (≥18:00), jadwal besok
       if (now.getHours() >= 18) {
         now.setDate(now.getDate() + 1);
       }
       return daysMap[now.getDay()];
     }
 
-    // Menampilkan jadwal + tugas untuk mapel tsb
     function displaySubjects() {
       subjectList.innerHTML = "";
       let displayDay = getCurrentScheduleDay();
@@ -402,16 +353,12 @@
           li.classList = "bg-gray-200 p-2 rounded mb-2";
           let subjectHtml = `<div class="font-semibold text-lg">${item.subject}</div>`;
           
-          // Tampilkan tugas jika mapel sama, tanpa memfilter berdasarkan hari
-          let matchedTasks = tasks.filter(t => 
-            t.mapel.toLowerCase() === item.subject.toLowerCase()
-          );
+          // Tugas dengan mapel sama (abaikan day)
+          let matchedTasks = tasks.filter(t => t.mapel.toLowerCase() === item.subject.toLowerCase());
           if (matchedTasks.length > 0) {
             subjectHtml += `<ul class="ml-4 mt-1 list-disc">`;
             matchedTasks.forEach(taskItem => {
-              let deadlineText = taskItem.deadline 
-                ? new Date(taskItem.deadline).toLocaleDateString() 
-                : '-';
+              let deadlineText = taskItem.deadline ? new Date(taskItem.deadline).toLocaleDateString() : '-';
               subjectHtml += `
                 <li class="mt-1">
                   <span class="text-gray-800">Tugas: ${taskItem.tugas}</span>
@@ -424,16 +371,16 @@
             subjectHtml += `<div class="text-sm text-gray-600 ml-4 mt-1 italic">Tidak ada tugas</div>`;
           }
           li.innerHTML = subjectHtml;
-          // Tidak ada tombol silang di jadwal
           subjectList.appendChild(li);
         });
       }
     }
 
+    // Tampilkan tugas & jadwal saat pertama kali load
     displayAllTasks();
     displaySubjects();
 
-    // ========== MODE FOKUS ==========
+    // Mode Fokus
     let isFocusMode = false;
     let focusModeBtn = document.getElementById('focusModeBtn');
     focusModeBtn.addEventListener('click', toggleFocusMode);
