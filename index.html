@@ -41,26 +41,35 @@
       </div>
     </div>
 
-    <!-- Pengaturan Waktu Belajar -->
-    <div id="settingsSection" class="nonFocus mb-8">
+    <!-- Pengaturan Waktu Belajar (Menggunakan Form agar ENTER bisa submit) -->
+    <form id="settingsForm" class="nonFocus mb-8">
       <h2 class="text-xl font-semibold text-gray-700 mb-2">Pengaturan Waktu Belajar</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-gray-600">Waktu Belajar (menit):</label>
-          <input id="studyTime" type="number" min="1" value="25" 
-                 class="mt-1 border rounded w-full p-2" />
+          <input id="studyTime" 
+                 type="number" 
+                 min="1" 
+                 value="25" 
+                 class="mt-1 border rounded w-full p-2" 
+                 required />
         </div>
         <div>
           <label class="block text-gray-600">Waktu Istirahat (menit):</label>
-          <input id="breakTime" type="number" min="1" value="5" 
-                 class="mt-1 border rounded w-full p-2" />
+          <input id="breakTime" 
+                 type="number" 
+                 min="1" 
+                 value="5" 
+                 class="mt-1 border rounded w-full p-2"
+                 required />
         </div>
       </div>
       <button id="saveSettings" 
+              type="submit"
               class="bg-green-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-green-600">
         Simpan Pengaturan
       </button>
-    </div>
+    </form>
 
     <!-- Daftar Tugas -->
     <div id="tasksSection" class="nonFocus mb-8">
@@ -109,14 +118,19 @@
   </div>
 
   <script>
+    // ========== AUDIO NOTIFIKASI ==========
+    // Pastikan file end.mp3 tersedia di folder assets/musics/
+    const endSound = new Audio('assets/musics/end.mp3');
+
     // ========== TIMER LOGIC ==========
     let timerElement = document.getElementById('timer');
     let startBtn = document.getElementById('startBtn');
     let pauseBtn = document.getElementById('pauseBtn');
     let resetBtn = document.getElementById('resetBtn');
+
     let studyTimeInput = document.getElementById('studyTime');
     let breakTimeInput = document.getElementById('breakTime');
-    let saveSettingsBtn = document.getElementById('saveSettings');
+    let settingsForm = document.getElementById('settingsForm');
 
     let studyDuration = parseInt(studyTimeInput.value) * 60;
     let breakDuration = parseInt(breakTimeInput.value) * 60;
@@ -125,16 +139,19 @@
     let isRunning = false;
     let isStudySession = true; // true: sesi belajar, false: sesi istirahat
 
+    // Fungsi menampilkan waktu (mm:ss)
     function formatTime(seconds) {
       let minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
       let remainingSeconds = (seconds % 60).toString().padStart(2, '0');
       return `${minutes}:${remainingSeconds}`;
     }
 
+    // Update tampilan timer
     function updateTimer() {
       timerElement.innerText = formatTime(timeInSeconds);
     }
 
+    // Ubah warna latar timer (merah=belajar, hijau=istirahat)
     function updateTimerBackground() {
       if (isStudySession) {
         timerElement.classList.remove('bg-green-500');
@@ -155,7 +172,13 @@
       });
     }
 
+    // Berpindah sesi belajar <-> istirahat
     function switchSession() {
+      // Putar suara notifikasi setiap sesi berakhir
+      endSound.play().catch(err => {
+        console.log("Audio belum bisa diputar otomatis:", err);
+      });
+
       if (isStudySession) {
         // Selesai belajar, mulai istirahat
         isStudySession = false;
@@ -172,6 +195,7 @@
       updateTimer();
     }
 
+    // Mulai timer
     function startTimer() {
       if (!isRunning) {
         timerInterval = setInterval(() => {
@@ -188,11 +212,13 @@
       }
     }
 
+    // Jeda timer
     function pauseTimer() {
       clearInterval(timerInterval);
       isRunning = false;
     }
 
+    // Reset timer ke sesi belajar
     function resetTimer() {
       clearInterval(timerInterval);
       isRunning = false;
@@ -202,17 +228,26 @@
       updateTimer();
     }
 
-    saveSettingsBtn.addEventListener('click', () => {
+    // Handler simpan pengaturan
+    function saveSettingsHandler() {
       studyDuration = parseInt(studyTimeInput.value) * 60;
       breakDuration = parseInt(breakTimeInput.value) * 60;
       resetTimer();
       showAlert('Pengaturan Disimpan', 'Waktu belajar & istirahat telah diperbarui.', 'success');
+    }
+
+    // Saat form disubmit (ENTER atau klik tombol)
+    settingsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveSettingsHandler();
     });
 
+    // Tombol timer
     startBtn.addEventListener('click', startTimer);
     pauseBtn.addEventListener('click', pauseTimer);
     resetBtn.addEventListener('click', resetTimer);
 
+    // Inisialisasi tampilan awal timer
     updateTimer();
     updateTimerBackground();
 
@@ -298,9 +333,9 @@
         filtered.forEach(item => {
           let li = document.createElement('li');
           li.classList = "bg-gray-200 p-2 rounded flex justify-between items-center";
+          // Hanya tampilkan nama mapel, tanpa menampilkan harinya
           li.innerHTML = `
             <span class="font-semibold">${item.subject}</span>
-            <small class="text-gray-600">${item.day}</small>
           `;
           let deleteBtn = document.createElement('button');
           deleteBtn.innerText = "X";
@@ -324,6 +359,7 @@
 
     function toggleFocusMode() {
       isFocusMode = !isFocusMode;
+      // Sembunyikan elemen dengan class 'nonFocus'
       document.querySelectorAll('.nonFocus').forEach(el => {
         el.classList.toggle('hidden', isFocusMode);
       });
