@@ -147,8 +147,7 @@
   </div>
 
   <script>
-    // ========== AUDIO NOTIFIKASI ==========
-    // Pastikan file end.mp3 tersedia di folder assets/musics/
+    // ========== AUDIO NOTIFIKASI ========== 
     const endSound = new Audio('assets/musics/end.mp3');
 
     // ========== TIMER LOGIC ==========
@@ -168,19 +167,19 @@
     let isRunning = false;
     let isStudySession = true; // true: sesi belajar, false: sesi istirahat
 
-    // Fungsi menampilkan waktu (mm:ss)
+    // Format Waktu
     function formatTime(seconds) {
       let minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
       let remainingSeconds = (seconds % 60).toString().padStart(2, '0');
       return `${minutes}:${remainingSeconds}`;
     }
 
-    // Update tampilan timer
+    // Update Tampilan Timer
     function updateTimer() {
       timerElement.innerText = formatTime(timeInSeconds);
     }
 
-    // Ubah warna latar timer (merah=belajar, hijau=istirahat)
+    // Ubah Warna Timer (Merah = Belajar, Hijau = Istirahat)
     function updateTimerBackground() {
       if (isStudySession) {
         timerElement.classList.remove('bg-green-500');
@@ -191,9 +190,9 @@
       }
     }
 
-    // Fungsi helper untuk SweetAlert
+    // Menampilkan SweetAlert
     function showAlert(title, text, icon='info') {
-      Swal.fire({
+      return Swal.fire({
         title: title,
         text: text,
         icon: icon,
@@ -201,7 +200,7 @@
       });
     }
 
-    // Berpindah sesi belajar <-> istirahat
+    // Berpindah Sesi (Belajar <-> Istirahat)
     function switchSession() {
       // Putar suara notifikasi setiap sesi berakhir
       endSound.play().catch(err => {
@@ -209,22 +208,35 @@
       });
 
       if (isStudySession) {
-        // Selesai belajar, mulai istirahat
+        // Selesai Belajar -> Mulai Istirahat
         isStudySession = false;
         timeInSeconds = breakDuration;
         updateTimerBackground();
-        showAlert('Waktu belajar selesai!', 'Mulai istirahat.', 'success');
+        updateTimer();
+        // Tampilkan Alert, jika user klik OK -> langsung start Timer
+        showAlert('Waktu belajar selesai!', 'Mulai istirahat.', 'success')
+          .then((result) => {
+            if (result.isConfirmed) {
+              startTimer();
+            }
+          });
       } else {
-        // Selesai istirahat, mulai belajar
+        // Selesai Istirahat -> Mulai Belajar
         isStudySession = true;
         timeInSeconds = studyDuration;
         updateTimerBackground();
-        showAlert('Istirahat selesai!', 'Mulai belajar.', 'success');
+        updateTimer();
+        // Tampilkan Alert, jika user klik OK -> langsung start Timer
+        showAlert('Istirahat selesai!', 'Mulai belajar.', 'success')
+          .then((result) => {
+            if (result.isConfirmed) {
+              startTimer();
+            }
+          });
       }
-      updateTimer();
     }
 
-    // Mulai timer
+    // Mulai Timer
     function startTimer() {
       if (!isRunning) {
         timerInterval = setInterval(() => {
@@ -241,13 +253,13 @@
       }
     }
 
-    // Jeda timer
+    // Jeda Timer
     function pauseTimer() {
       clearInterval(timerInterval);
       isRunning = false;
     }
 
-    // Reset timer ke sesi belajar
+    // Reset Timer ke Sesi Belajar
     function resetTimer() {
       clearInterval(timerInterval);
       isRunning = false;
@@ -257,7 +269,7 @@
       updateTimer();
     }
 
-    // Handler simpan pengaturan
+    // Simpan Pengaturan
     function saveSettingsHandler() {
       studyDuration = parseInt(studyTimeInput.value) * 60;
       breakDuration = parseInt(breakTimeInput.value) * 60;
@@ -265,31 +277,26 @@
       showAlert('Pengaturan Disimpan', 'Waktu belajar & istirahat telah diperbarui.', 'success');
     }
 
-    // Saat form disubmit (ENTER atau klik tombol)
+    // Event Submit Form Pengaturan
     settingsForm.addEventListener('submit', (e) => {
       e.preventDefault();
       saveSettingsHandler();
     });
 
-    // Tombol timer
+    // Tombol Timer
     startBtn.addEventListener('click', startTimer);
     pauseBtn.addEventListener('click', pauseTimer);
     resetBtn.addEventListener('click', resetTimer);
 
-    // Inisialisasi tampilan awal timer
+    // Inisialisasi Timer
     updateTimer();
     updateTimerBackground();
 
-    // ========== DATA & VARIABEL UNTUK TUGAS DAN JADWAL ==========
-
-    // Array untuk menyimpan jadwal pelajaran
-    let subjectSchedule = []; // { subject: 'IPA', day: 'Sabtu' }
-
-    // Array untuk menyimpan tugas
-    let tasks = []; // { mapel: 'IPA', tugas: 'Mencatat Bab 1', day: 'Sabtu', deadline: '2023-03-04' }
+    // ========== DATA & VARIABEL UNTUK TUGAS & JADWAL ==========
+    let subjectSchedule = []; // Array untuk jadwal pelajaran
+    let tasks = []; // Array untuk tugas
 
     // ========== BAGIAN TUGAS ==========
-
     let taskMapelInput = document.getElementById('taskMapel');
     let taskDescriptionInput = document.getElementById('taskDescription');
     let taskDaySelect = document.getElementById('taskDay');
@@ -297,7 +304,6 @@
     let addTaskBtn = document.getElementById('addTask');
     let taskList = document.getElementById('taskList');
 
-    // Fungsi untuk menampilkan daftar semua tugas di bawah "Tambah Tugas"
     function displayAllTasks() {
       taskList.innerHTML = "";
       if (tasks.length === 0) {
@@ -319,7 +325,7 @@
         deleteBtn.onclick = () => {
           tasks.splice(index, 1);
           displayAllTasks();
-          displaySubjects();
+          displaySubjects(); // Update jadwal
         };
         li.appendChild(taskInfo);
         li.appendChild(deleteBtn);
@@ -332,7 +338,6 @@
       let tugasVal = taskDescriptionInput.value.trim();
       let dayVal = taskDaySelect.value;
       let deadlineVal = taskDeadlineInput.value;
-
       if (mapelVal && tugasVal && dayVal) {
         tasks.push({
           mapel: mapelVal,
@@ -345,7 +350,7 @@
         taskDaySelect.selectedIndex = 0;
         taskDeadlineInput.value = "";
         displayAllTasks();
-        displaySubjects(); // perbarui jadwal jika ada tugas baru
+        displaySubjects(); // Update jadwal
       } else {
         showAlert('Gagal Menambah Tugas', 'Masukkan mapel, tugas, dan hari dengan benar.', 'error');
       }
@@ -371,10 +376,8 @@
       }
     });
 
-    // Mapping hari (0: Minggu, 1: Senin, dst.)
     const daysMap = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
-    // Menentukan hari apa yang akan ditampilkan (hari ini atau besok jika >=18:00)
     function getCurrentScheduleDay() {
       let now = new Date();
       // Jika sudah malam (≥18:00), tampilkan jadwal untuk hari berikutnya
@@ -384,30 +387,23 @@
       return daysMap[now.getDay()];
     }
 
-    // Menampilkan jadwal beserta tugas yang cocok
+    // Menampilkan jadwal + tugas untuk mapel tsb
     function displaySubjects() {
       subjectList.innerHTML = "";
       let displayDay = getCurrentScheduleDay();
       scheduleTitle.innerText = `Jadwal untuk hari ${displayDay}`;
       
-      // Filter jadwal yang sesuai hari ini/besok
       let filtered = subjectSchedule.filter(item => item.day === displayDay);
       if (filtered.length === 0) {
-        subjectList.innerHTML = `
-          <li class='bg-gray-200 p-2 rounded'>Tidak ada jadwal untuk hari ini.</li>
-        `;
+        subjectList.innerHTML = `<li class='bg-gray-200 p-2 rounded'>Tidak ada jadwal untuk hari ini.</li>`;
       } else {
         filtered.forEach(item => {
-          // Buat list item untuk mapel
           let li = document.createElement('li');
           li.classList = "bg-gray-200 p-2 rounded mb-2";
-
-          // Konten utama: Nama mapel
           let subjectHtml = `<div class="font-semibold text-lg">${item.subject}</div>`;
-
-          // Cari tugas yang match day & mapel
+          
+          // Tampilkan tugas jika mapel sama, tanpa memfilter berdasarkan hari
           let matchedTasks = tasks.filter(t => 
-            t.day === displayDay && 
             t.mapel.toLowerCase() === item.subject.toLowerCase()
           );
           if (matchedTasks.length > 0) {
@@ -419,7 +415,7 @@
               subjectHtml += `
                 <li class="mt-1">
                   <span class="text-gray-800">Tugas: ${taskItem.tugas}</span>
-                  <small class="text-gray-600"> (Deadline: ${deadlineText})</small>
+                  <small class="text-gray-600"> (Hari: ${taskItem.day}, Deadline: ${deadlineText})</small>
                 </li>
               `;
             });
@@ -427,27 +423,13 @@
           } else {
             subjectHtml += `<div class="text-sm text-gray-600 ml-4 mt-1 italic">Tidak ada tugas</div>`;
           }
-
           li.innerHTML = subjectHtml;
-          li.classList = "bg-gray-200 p-2 rounded flex justify-between items-center";
-          // Hanya tampilkan nama mapel, tanpa menampilkan harinya
-          li.innerHTML = `
-            <span class="font-semibold">${item.subject}</span>
-          `;
-          let deleteBtn = document.createElement('button');
-          deleteBtn.innerText = "X";
-          deleteBtn.classList = "text-red-500 ml-2";
-          deleteBtn.onclick = () => {
-            subjectSchedule = subjectSchedule.filter(sub => sub !== item);
-            displaySubjects();
-          };
-          li.appendChild(deleteBtn);
+          // Tidak ada tombol silang di jadwal
           subjectList.appendChild(li);
         });
       }
     }
 
-    // Panggil saat pertama kali load
     displayAllTasks();
     displaySubjects();
 
@@ -458,7 +440,6 @@
 
     function toggleFocusMode() {
       isFocusMode = !isFocusMode;
-      // Sembunyikan elemen dengan class 'nonFocus'
       document.querySelectorAll('.nonFocus').forEach(el => {
         el.classList.toggle('hidden', isFocusMode);
       });
