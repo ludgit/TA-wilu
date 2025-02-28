@@ -147,7 +147,11 @@
   </div>
 
   <script>
+<<<<<<< HEAD
     // ========== AUDIO NOTIFIKASI ========== 
+=======
+    // ========== AUDIO NOTIFIKASI ==========
+>>>>>>> 4409a30f36c0ba45c6bbf0ca9e3a3b9703426749
     // Pastikan file end.mp3 tersedia di folder assets/musics/
     const endSound = new Audio('assets/musics/end.mp3');
 
@@ -400,6 +404,7 @@
         filtered.forEach(item => {
           // Buat list item untuk mapel
           let li = document.createElement('li');
+<<<<<<< HEAD
           li.classList = "bg-gray-200 p-2 rounded mb-2";
 
           // Konten utama: Nama mapel
@@ -429,6 +434,21 @@
           }
 
           li.innerHTML = subjectHtml;
+=======
+          li.classList = "bg-gray-200 p-2 rounded flex justify-between items-center";
+          // Hanya tampilkan nama mapel, tanpa menampilkan harinya
+          li.innerHTML = `
+            <span class="font-semibold">${item.subject}</span>
+          `;
+          let deleteBtn = document.createElement('button');
+          deleteBtn.innerText = "X";
+          deleteBtn.classList = "text-red-500 ml-2";
+          deleteBtn.onclick = () => {
+            subjectSchedule = subjectSchedule.filter(sub => sub !== item);
+            displaySubjects();
+          };
+          li.appendChild(deleteBtn);
+>>>>>>> 4409a30f36c0ba45c6bbf0ca9e3a3b9703426749
           subjectList.appendChild(li);
         });
       }
