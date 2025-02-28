@@ -404,7 +404,6 @@
         filtered.forEach(item => {
           // Buat list item untuk mapel
           let li = document.createElement('li');
-<<<<<<< HEAD
           li.classList = "bg-gray-200 p-2 rounded mb-2";
 
           // Konten utama: Nama mapel
@@ -434,7 +433,6 @@
           }
 
           li.innerHTML = subjectHtml;
-=======
           li.classList = "bg-gray-200 p-2 rounded flex justify-between items-center";
           // Hanya tampilkan nama mapel, tanpa menampilkan harinya
           li.innerHTML = `
@@ -448,7 +446,6 @@
             displaySubjects();
           };
           li.appendChild(deleteBtn);
->>>>>>> 4409a30f36c0ba45c6bbf0ca9e3a3b9703426749
           subjectList.appendChild(li);
         });
       }
