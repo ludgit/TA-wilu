@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EduTimer - Manajemen Waktu Belajar</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 p-4">
+  <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 relative">
+
+    <!-- Bagian Timer -->
+    <div id="timerSection" class="mb-8">
+      <div id="timer" class="text-5xl font-bold text-white bg-red-500 p-6 rounded-lg shadow-md text-center">
+        25:00
+      </div>
+
+      <!-- Tombol Timer + Tombol Mode Fokus -->
+      <div class="flex flex-wrap justify-center gap-4 mt-4">
+        <button id="startBtn" 
+                class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700">
+          Mulai
+        </button>
+        <button id="pauseBtn" 
+                class="bg-yellow-500 text-white px-6 py-2 rounded-lg shadow hover:bg-yellow-600">
+          Pause
+        </button>
+        <button id="resetBtn" 
+                class="bg-red-500 text-white px-6 py-2 rounded-lg shadow hover:bg-red-600">
+          Reset
+        </button>
+        <button id="focusModeBtn" 
+                class="bg-indigo-500 text-white px-6 py-2 rounded-lg shadow hover:bg-indigo-600">
+          Mode Fokus
+        </button>
+      </div>
+    </div>
+
+    <!-- Pengaturan Waktu Belajar -->
+    <div id="settingsSection" class="nonFocus mb-8">
+      <h2 class="text-xl font-semibold text-gray-700 mb-2">Pengaturan Waktu Belajar</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-gray-600">Waktu Belajar (menit):</label>
+          <input id="studyTime" type="number" min="1" value="25" 
+                 class="mt-1 border rounded w-full p-2" />
+        </div>
+        <div>
+          <label class="block text-gray-600">Waktu Istirahat (menit):</label>
+          <input id="breakTime" type="number" min="1" value="5" 
+                 class="mt-1 border rounded w-full p-2" />
+        </div>
+      </div>
+      <button id="saveSettings" 
+              class="bg-green-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-green-600">
+        Simpan Pengaturan
+      </button>
+    </div>
+
+    <!-- Daftar Tugas -->
+    <div id="tasksSection" class="nonFocus mb-8">
+      <h2 class="text-xl font-semibold text-gray-700 mb-2">Daftar Tugas</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input id="taskInput" type="text" placeholder="Deskripsi tugas..." 
+               class="border p-2 rounded w-full" />
+        <input id="deadlineInput" type="date" 
+               class="border p-2 rounded w-full" />
+      </div>
+      <button id="addTask" 
+              class="bg-blue-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-blue-600">
+        Tambah Tugas
+      </button>
+      <ul id="taskList" class="mt-4 space-y-2"></ul>
+    </div>
+
+    <!-- Jadwal Pelajaran -->
+    <div id="scheduleSection" class="nonFocus">
+      <h2 class="text-xl font-semibold text-gray-700 mb-2">Jadwal Pelajaran</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input id="subjectInput" type="text" placeholder="Nama Mapel..." 
+               class="border p-2 rounded w-full" />
+        <select id="subjectDay" class="border p-2 rounded w-full">
+          <option value="" disabled selected>Pilih Hari</option>
+          <option value="Senin">Senin</option>
+          <option value="Selasa">Selasa</option>
+          <option value="Rabu">Rabu</option>
+          <option value="Kamis">Kamis</option>
+          <option value="Jumat">Jumat</option>
+          <option value="Sabtu">Sabtu</option>
+          <option value="Minggu">Minggu</option>
+        </select>
+      </div>
+      <button id="addSubject" 
+              class="bg-purple-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-purple-600">
+        Tambah Pelajaran
+      </button>
+      <div class="mt-4">
+        <h3 class="text-lg font-semibold text-gray-700" id="scheduleTitle">
+          Jadwal untuk hari ini
+        </h3>
+        <ul id="subjectList" class="mt-2 space-y-2"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========== TIMER LOGIC ==========
+    let timerElement = document.getElementById('timer');
+    let startBtn = document.getElementById('startBtn');
+    let pauseBtn = document.getElementById('pauseBtn');
+    let resetBtn = document.getElementById('resetBtn');
+    let studyTimeInput = document.getElementById('studyTime');
+    let breakTimeInput = document.getElementById('breakTime');
+    let saveSettingsBtn = document.getElementById('saveSettings');
+
+    let studyDuration = parseInt(studyTimeInput.value) * 60;
+    let breakDuration = parseInt(breakTimeInput.value) * 60;
+    let timeInSeconds = studyDuration;
+    let timerInterval;
+    let isRunning = false;
+    let isStudySession = true; // true: sesi belajar, false: sesi istirahat
+
+    function formatTime(seconds) {
+      let minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+      let remainingSeconds = (seconds % 60).toString().padStart(2, '0');
+      return `${minutes}:${remainingSeconds}`;
+    }
+
+    function updateTimer() {
+      timerElement.innerText = formatTime(timeInSeconds);
+    }
+
+    function updateTimerBackground() {
+      if (isStudySession) {
+        timerElement.classList.remove('bg-green-500');
+        timerElement.classList.add('bg-red-500');
+      } else {
+        timerElement.classList.remove('bg-red-500');
+        timerElement.classList.add('bg-green-500');
+      }
+    }
+
+    // Fungsi helper untuk SweetAlert
+    function showAlert(title, text, icon='info') {
+      Swal.fire({
+        title: title,
+        text: text,
+        icon: icon,
+        confirmButtonText: 'OK'
+      });
+    }
+
+    function switchSession() {
+      if (isStudySession) {
+        // Selesai belajar, mulai istirahat
+        isStudySession = false;
+        timeInSeconds = breakDuration;
+        updateTimerBackground();
+        showAlert('Waktu belajar selesai!', 'Mulai istirahat.', 'success');
+      } else {
+        // Selesai istirahat, mulai belajar
+        isStudySession = true;
+        timeInSeconds = studyDuration;
+        updateTimerBackground();
+        showAlert('Istirahat selesai!', 'Mulai belajar.', 'success');
+      }
+      updateTimer();
+    }
+
+    function startTimer() {
+      if (!isRunning) {
+        timerInterval = setInterval(() => {
+          if (timeInSeconds > 0) {
+            timeInSeconds--;
+            updateTimer();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false; 
+            switchSession();
+          }
+        }, 1000);
+        isRunning = true;
+      }
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      isStudySession = true;
+      timeInSeconds = studyDuration;
+      updateTimerBackground();
+      updateTimer();
+    }
+
+    saveSettingsBtn.addEventListener('click', () => {
+      studyDuration = parseInt(studyTimeInput.value) * 60;
+      breakDuration = parseInt(breakTimeInput.value) * 60;
+      resetTimer();
+      showAlert('Pengaturan Disimpan', 'Waktu belajar & istirahat telah diperbarui.', 'success');
+    });
+
+    startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', pauseTimer);
+    resetBtn.addEventListener('click', resetTimer);
+
+    updateTimer();
+    updateTimerBackground();
+
+    // ========== TUGAS ==========
+    let taskInput = document.getElementById('taskInput');
+    let deadlineInput = document.getElementById('deadlineInput');
+    let addTaskBtn = document.getElementById('addTask');
+    let taskList = document.getElementById('taskList');
+
+    addTaskBtn.addEventListener('click', () => {
+      let taskText = taskInput.value.trim();
+      let deadlineValue = deadlineInput.value;
+      if (taskText && deadlineValue) {
+        let li = document.createElement('li');
+        li.classList = "bg-gray-200 p-2 rounded flex justify-between items-center";
+        let taskInfo = document.createElement('div');
+        taskInfo.innerHTML = `
+          <span class="font-semibold">${taskText}</span><br>
+          <small class="text-gray-600">Deadline: 
+            ${new Date(deadlineValue).toLocaleDateString()}
+          </small>`;
+        
+        let deleteBtn = document.createElement('button');
+        deleteBtn.innerText = "X";
+        deleteBtn.classList = "text-red-500 ml-2";
+        deleteBtn.onclick = () => li.remove();
+
+        li.appendChild(taskInfo);
+        li.appendChild(deleteBtn);
+        taskList.appendChild(li);
+
+        taskInput.value = "";
+        deadlineInput.value = "";
+      } else {
+        showAlert('Gagal Menambah Tugas', 'Masukkan deskripsi tugas dan deadline dengan benar.', 'error');
+      }
+    });
+
+    // ========== JADWAL PELAJARAN ==========
+    let subjectInput = document.getElementById('subjectInput');
+    let subjectDaySelect = document.getElementById('subjectDay');
+    let addSubjectBtn = document.getElementById('addSubject');
+    let subjectList = document.getElementById('subjectList');
+    let scheduleTitle = document.getElementById('scheduleTitle');
+
+    let subjectSchedule = []; // Array of objects {subject, day}
+
+    addSubjectBtn.addEventListener('click', () => {
+      let subjectText = subjectInput.value.trim();
+      let subjectDay = subjectDaySelect.value;
+      if (subjectText && subjectDay) {
+        subjectSchedule.push({ subject: subjectText, day: subjectDay });
+        subjectInput.value = "";
+        subjectDaySelect.selectedIndex = 0;
+        displaySubjects();
+      } else {
+        showAlert('Gagal Menambah Pelajaran', 'Masukkan nama mapel dan pilih hari dengan benar.', 'error');
+      }
+    });
+
+    // Mapping hari (0: Minggu, 1: Senin, dst.)
+    const daysMap = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+    function getCurrentScheduleDay() {
+      let now = new Date();
+      // Jika sudah malam (≥18:00), tampilkan jadwal untuk hari berikutnya
+      if (now.getHours() >= 18) {
+        now.setDate(now.getDate() + 1);
+      }
+      return daysMap[now.getDay()];
+    }
+
+    function displaySubjects() {
+      subjectList.innerHTML = "";
+      let displayDay = getCurrentScheduleDay();
+      scheduleTitle.innerText = `Jadwal untuk hari ${displayDay}`;
+      let filtered = subjectSchedule.filter(item => item.day === displayDay);
+      if (filtered.length === 0) {
+        subjectList.innerHTML = `
+          <li class='bg-gray-200 p-2 rounded'>Tidak ada jadwal untuk hari ini.</li>
+        `;
+      } else {
+        filtered.forEach(item => {
+          let li = document.createElement('li');
+          li.classList = "bg-gray-200 p-2 rounded flex justify-between items-center";
+          li.innerHTML = `
+            <span class="font-semibold">${item.subject}</span>
+            <small class="text-gray-600">${item.day}</small>
+          `;
+          let deleteBtn = document.createElement('button');
+          deleteBtn.innerText = "X";
+          deleteBtn.classList = "text-red-500 ml-2";
+          deleteBtn.onclick = () => {
+            subjectSchedule = subjectSchedule.filter(sub => sub !== item);
+            displaySubjects();
+          };
+          li.appendChild(deleteBtn);
+          subjectList.appendChild(li);
+        });
+      }
+    }
+
+    displaySubjects();
+
+    // ========== MODE FOKUS ==========
+    let isFocusMode = false;
+    let focusModeBtn = document.getElementById('focusModeBtn');
+    focusModeBtn.addEventListener('click', toggleFocusMode);
+
+    function toggleFocusMode() {
+      isFocusMode = !isFocusMode;
+      document.querySelectorAll('.nonFocus').forEach(el => {
+        el.classList.toggle('hidden', isFocusMode);
+      });
+      focusModeBtn.innerText = isFocusMode ? "Keluar Mode Fokus" : "Mode Fokus";
+    }
+  </script>
+</body>
+</html>
