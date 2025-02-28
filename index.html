@@ -4,14 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EduTimer - Manajemen Waktu Belajar</title>
-
-  <!-- Tailwind CSS (CDN) -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- SweetAlert2 (CDN) -->
+  <!-- SweetAlert2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 text-gray-900 p-4">
+
+  <!-- Tombol Aktifkan Notifikasi (User Gesture) -->
+  <div class="flex justify-end mb-4">
+    <button id="enableNotifBtn" class="bg-teal-500 text-white px-4 py-2 rounded shadow hover:bg-teal-600">
+      Aktifkan Notifikasi
+    </button>
+  </div>
 
   <!-- Konten Utama -->
   <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 relative">
@@ -21,7 +26,6 @@
       <div id="timer" class="text-5xl font-bold text-white bg-red-500 p-6 rounded-lg shadow-md text-center">
         25:00
       </div>
-
       <!-- Tombol Timer + Tombol Mode Fokus -->
       <div class="flex flex-wrap justify-center gap-4 mt-4">
         <button id="startBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700">Mulai</button>
@@ -31,7 +35,7 @@
       </div>
     </div>
 
-    <!-- Form Pengaturan Waktu Belajar -->
+    <!-- Pengaturan Waktu Belajar -->
     <form id="settingsForm" class="nonFocus mb-8">
       <h2 class="text-xl font-semibold text-gray-700 mb-2">Pengaturan Waktu Belajar</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -49,13 +53,11 @@
       </button>
     </form>
 
-    <!-- Tambah Tugas -->
-    <div id="tasksSection" class="nonFocus mb-8">
-      <h2 class="text-xl font-semibold text-gray-700 mb-2">Tambah Tugas</h2>
+    <!-- Pengaturan Jam Mulai Belajar per Hari -->
+    <div id="startTimeSection" class="nonFocus mb-8">
+      <h2 class="text-xl font-semibold text-gray-700 mb-2">Pengaturan Jam Mulai Belajar</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input id="taskMapel" type="text" placeholder="Mapel (misal: IPA, MTK, dll.)" class="border p-2 rounded w-full" />
-        <input id="taskDescription" type="text" placeholder="Tugas (misal: Mencatat Bab 1)" class="border p-2 rounded w-full" />
-        <select id="taskDay" class="border p-2 rounded w-full">
+        <select id="startDay" class="border p-2 rounded w-full">
           <option value="" disabled selected>Pilih Hari</option>
           <option value="Senin">Senin</option>
           <option value="Selasa">Selasa</option>
@@ -65,6 +67,22 @@
           <option value="Sabtu">Sabtu</option>
           <option value="Minggu">Minggu</option>
         </select>
+        <input id="startTime" type="time" class="border p-2 rounded w-full" />
+      </div>
+      <button id="saveStartTime" class="bg-blue-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-blue-600">
+        Simpan Jam Belajar
+      </button>
+    </div>
+
+    <!-- Tambah Tugas -->
+    <div id="tasksSection" class="nonFocus mb-8">
+      <h2 class="text-xl font-semibold text-gray-700 mb-2">Tambah Tugas</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Input Mapel -->
+        <input id="taskMapel" type="text" placeholder="Mapel (misal: IPA, MTK, dll.)" class="border p-2 rounded w-full" />
+        <!-- Input Tugas -->
+        <input id="taskDescription" type="text" placeholder="Tugas (misal: Mencatat Bab 1)" class="border p-2 rounded w-full" />
+        <!-- Input Deadline (tanggal lengkap) -->
         <input id="taskDeadline" type="date" class="border p-2 rounded w-full" />
       </div>
       <button id="addTask" class="bg-blue-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-blue-600">
@@ -100,10 +118,47 @@
   </div>
 
   <script>
-    // ========== AUDIO NOTIFIKASI ========== 
-    const endSound = new Audio('assets/musics/end.mp3');
+    // =================== TOMBOL AKTIFKAN NOTIFIKASI (USER GESTURE) ===================
+    const enableNotifBtn = document.getElementById('enableNotifBtn');
+    if ("Notification" in window) {
+      enableNotifBtn.addEventListener('click', () => {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            new Notification("Notifikasi diizinkan!", {
+              body: "Sekarang notifikasi dapat muncul di desktop/mobile.",
+              icon: "https://via.placeholder.com/128"
+            });
+          } else {
+            // fallback atau pesan
+            console.log("Notifikasi tidak diizinkan oleh user.");
+          }
+        });
+      });
+    } else {
+      // Browser tidak mendukung Notification API
+      enableNotifBtn.addEventListener('click', () => {
+        Swal.fire({
+          title: "Not Supported",
+          text: "Browser ini tidak mendukung Notification API.",
+          icon: "error",
+          confirmButtonText: "OK"
+        });
+      });
+    }
 
-    // ========== VARIABEL TIMER ========== 
+    // =================== FUNGSI UTAMA NOTIFIKASI ===================
+    function sendNotification(title, options) {
+      // Hanya kirim notifikasi native jika diizinkan
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(title, options);
+      } else {
+        // Fallback: SweetAlert2
+        Swal.fire({ title, text: options.body, icon: options.icon || "info", confirmButtonText: "OK" });
+      }
+    }
+
+    // =================== TIMER LOGIC (Time-based) ===================
+    const endSound = new Audio('assets/musics/end.mp3');
     let timerElement = document.getElementById('timer');
     let startBtn = document.getElementById('startBtn');
     let pauseBtn = document.getElementById('pauseBtn');
@@ -112,18 +167,15 @@
     let breakTimeInput = document.getElementById('breakTime');
     let settingsForm = document.getElementById('settingsForm');
 
-    let studyDuration = parseInt(studyTimeInput.value) * 60;  // durasi belajar (detik)
-    let breakDuration = parseInt(breakTimeInput.value) * 60;  // durasi istirahat (detik)
-    let timeInSeconds = studyDuration;                        // waktu sisa saat ini
-    let isRunning = false;                                    // apakah timer sedang berjalan
-    let isStudySession = true;                                // true = sesi belajar, false = sesi istirahat
+    let studyDuration = parseInt(studyTimeInput.value) * 60;
+    let breakDuration = parseInt(breakTimeInput.value) * 60;
+    let timeInSeconds = studyDuration;
+    let isRunning = false;
+    let isStudySession = true;
+    let sessionStartTimestamp = null;
+    let sessionEndTimestamp = null;
+    let timerInterval = null;
 
-    // Variabel untuk pendekatan time-based
-    let sessionStartTimestamp = null;  // kapan sesi dimulai (Date.now())
-    let sessionEndTimestamp = null;    // kapan sesi berakhir (sessionStart + timeInSeconds * 1000)
-    let timerInterval = null;          // menyimpan ID setInterval
-
-    // ========== FUNGSI TIMER ========== 
     function formatTime(seconds) {
       let m = Math.floor(seconds / 60).toString().padStart(2, '0');
       let s = (seconds % 60).toString().padStart(2, '0');
@@ -144,30 +196,26 @@
       }
     }
 
-    // Mengecek waktu setiap interval (500ms)
     function checkTime() {
       let now = Date.now();
-      let diff = sessionEndTimestamp - now; // selisih milidetik
+      let diff = sessionEndTimestamp - now;
       if (diff <= 0) {
-        // Waktu habis
         clearInterval(timerInterval);
         isRunning = false;
         timeInSeconds = 0;
         updateTimerElement();
-        switchSession();  // ganti sesi
+        switchSession();
       } else {
-        timeInSeconds = Math.ceil(diff / 1000); 
+        timeInSeconds = Math.ceil(diff / 1000);
         updateTimerElement();
       }
     }
 
-    // Mulai timer dengan time-based approach
     function startTimer() {
       if (!isRunning) {
-        // Tetapkan sessionStart dan sessionEnd
         sessionStartTimestamp = Date.now();
         sessionEndTimestamp = sessionStartTimestamp + (timeInSeconds * 1000);
-        timerInterval = setInterval(checkTime, 500); 
+        timerInterval = setInterval(checkTime, 500);
         isRunning = true;
       }
     }
@@ -187,7 +235,6 @@
       updateTimerElement();
     }
 
-    // Menampilkan alert SweetAlert2 (mengembalikan Promise)
     function showAlert(title, text, icon='info') {
       return Swal.fire({
         title: title,
@@ -197,15 +244,11 @@
       });
     }
 
-    // Pindah Sesi (Belajar <-> Istirahat)
     function switchSession() {
-      // mainkan audio
       endSound.play().catch(err => {
         console.log("Audio belum bisa diputar otomatis:", err);
       });
-
       if (isStudySession) {
-        // Selesai Belajar -> Mulai Istirahat
         isStudySession = false;
         timeInSeconds = breakDuration;
         updateTimerBackground();
@@ -213,11 +256,10 @@
         showAlert('Waktu belajar selesai!', 'Mulai istirahat.', 'success')
           .then((result) => {
             if (result.isConfirmed) {
-              startTimer(); 
+              startTimer();
             }
           });
       } else {
-        // Selesai Istirahat -> Mulai Belajar
         isStudySession = true;
         timeInSeconds = studyDuration;
         updateTimerBackground();
@@ -231,7 +273,6 @@
       }
     }
 
-    // Saat form pengaturan disubmit
     settingsForm.addEventListener('submit', (e) => {
       e.preventDefault();
       studyDuration = parseInt(studyTimeInput.value) * 60;
@@ -240,23 +281,20 @@
       showAlert('Pengaturan Disimpan', 'Waktu belajar & istirahat telah diperbarui.', 'success');
     });
 
-    // Tombol Timer
     startBtn.addEventListener('click', startTimer);
     pauseBtn.addEventListener('click', pauseTimer);
     resetBtn.addEventListener('click', resetTimer);
 
-    // Inisialisasi awal
     updateTimerElement();
     updateTimerBackground();
 
-    // ========== BAGIAN TUGAS & JADWAL ========== 
-    let subjectSchedule = []; 
-    let tasks = []; 
+    // =================== DATA & VARIABEL TUGAS & JADWAL ===================
+    let subjectSchedule = [];  // Array untuk jadwal pelajaran
+    let tasks = [];            // Array untuk tugas
 
-    // Input Tugas
+    // =================== BAGIAN TUGAS ===================
     let taskMapelInput = document.getElementById('taskMapel');
     let taskDescriptionInput = document.getElementById('taskDescription');
-    let taskDaySelect = document.getElementById('taskDay');
     let taskDeadlineInput = document.getElementById('taskDeadline');
     let addTaskBtn = document.getElementById('addTask');
     let taskList = document.getElementById('taskList');
@@ -269,17 +307,17 @@
       }
       tasks.forEach((t, index) => {
         let li = document.createElement('li');
-        li.classList = "bg-gray-200 p-2 rounded flex justify-between items-center";
+        li.className = "bg-gray-200 p-2 rounded flex justify-between items-center";
         let deadlineText = t.deadline ? new Date(t.deadline).toLocaleDateString() : '-';
         li.innerHTML = `
           <div>
             <span class="font-semibold">${t.mapel}</span> - ${t.tugas}<br>
-            <small class="text-gray-600">Hari: ${t.day}, Deadline: ${deadlineText}</small>
+            <small class="text-gray-600">Deadline: ${deadlineText}</small>
           </div>
         `;
         let deleteBtn = document.createElement('button');
         deleteBtn.innerText = "X";
-        deleteBtn.classList = "text-red-500 ml-2";
+        deleteBtn.className = "text-red-500 ml-2";
         deleteBtn.onclick = () => {
           tasks.splice(index, 1);
           displayAllTasks();
@@ -293,22 +331,20 @@
     addTaskBtn.addEventListener('click', () => {
       let mapelVal = taskMapelInput.value.trim();
       let tugasVal = taskDescriptionInput.value.trim();
-      let dayVal = taskDaySelect.value;
       let deadlineVal = taskDeadlineInput.value;
-      if (mapelVal && tugasVal && dayVal) {
-        tasks.push({ mapel: mapelVal, tugas: tugasVal, day: dayVal, deadline: deadlineVal });
+      if (mapelVal && tugasVal && deadlineVal) {
+        tasks.push({ mapel: mapelVal, tugas: tugasVal, deadline: deadlineVal, deadlineNotified: false });
         taskMapelInput.value = "";
         taskDescriptionInput.value = "";
-        taskDaySelect.selectedIndex = 0;
         taskDeadlineInput.value = "";
         displayAllTasks();
         displaySubjects();
       } else {
-        showAlert('Gagal Menambah Tugas', 'Masukkan mapel, tugas, dan hari dengan benar.', 'error');
+        showAlert('Gagal Menambah Tugas', 'Masukkan mapel, tugas, dan deadline dengan benar.', 'error');
       }
     });
 
-    // Jadwal Pelajaran
+    // =================== BAGIAN JADWAL PELAJARAN ===================
     let subjectInput = document.getElementById('subjectInput');
     let subjectDaySelect = document.getElementById('subjectDay');
     let addSubjectBtn = document.getElementById('addSubject');
@@ -329,10 +365,8 @@
     });
 
     const daysMap = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
     function getCurrentScheduleDay() {
       let now = new Date();
-      // Jika sudah malam (≥18:00), jadwal besok
       if (now.getHours() >= 18) {
         now.setDate(now.getDate() + 1);
       }
@@ -343,26 +377,28 @@
       subjectList.innerHTML = "";
       let displayDay = getCurrentScheduleDay();
       scheduleTitle.innerText = `Jadwal untuk hari ${displayDay}`;
-      
       let filtered = subjectSchedule.filter(item => item.day === displayDay);
       if (filtered.length === 0) {
         subjectList.innerHTML = `<li class='bg-gray-200 p-2 rounded'>Tidak ada jadwal untuk hari ini.</li>`;
       } else {
         filtered.forEach(item => {
           let li = document.createElement('li');
-          li.classList = "bg-gray-200 p-2 rounded mb-2";
+          li.className = "bg-gray-200 p-2 rounded mb-2";
           let subjectHtml = `<div class="font-semibold text-lg">${item.subject}</div>`;
-          
-          // Tugas dengan mapel sama (abaikan day)
-          let matchedTasks = tasks.filter(t => t.mapel.toLowerCase() === item.subject.toLowerCase());
+          // Tampilkan tugas jika mapel sama dan jika deadline (hari dari deadline) sama dengan jadwal
+          let matchedTasks = tasks.filter(t => {
+            if (!t.deadline) return false;
+            let taskDay = daysMap[new Date(t.deadline).getDay()];
+            return t.mapel.toLowerCase() === item.subject.toLowerCase() && taskDay === item.day;
+          });
           if (matchedTasks.length > 0) {
             subjectHtml += `<ul class="ml-4 mt-1 list-disc">`;
             matchedTasks.forEach(taskItem => {
-              let deadlineText = taskItem.deadline ? new Date(taskItem.deadline).toLocaleDateString() : '-';
+              let deadlineText = new Date(taskItem.deadline).toLocaleDateString();
               subjectHtml += `
                 <li class="mt-1">
                   <span class="text-gray-800">Tugas: ${taskItem.tugas}</span>
-                  <small class="text-gray-600"> (Hari: ${taskItem.day}, Deadline: ${deadlineText})</small>
+                  <small class="text-gray-600"> (Deadline: ${deadlineText})</small>
                 </li>
               `;
             });
@@ -376,15 +412,13 @@
       }
     }
 
-    // Tampilkan tugas & jadwal saat pertama kali load
     displayAllTasks();
     displaySubjects();
 
-    // Mode Fokus
+    // =================== MODE FOKUS ===================
     let isFocusMode = false;
     let focusModeBtn = document.getElementById('focusModeBtn');
     focusModeBtn.addEventListener('click', toggleFocusMode);
-
     function toggleFocusMode() {
       isFocusMode = !isFocusMode;
       document.querySelectorAll('.nonFocus').forEach(el => {
@@ -392,6 +426,61 @@
       });
       focusModeBtn.innerText = isFocusMode ? "Keluar Mode Fokus" : "Mode Fokus";
     }
+
+    // =================== NOTIFIKASI PUSH ===================
+    function checkTaskDeadlineNotifications() {
+      let now = new Date();
+      tasks.forEach(task => {
+        if (task.deadline && !task.deadlineNotified) {
+          let deadlineDate = new Date(task.deadline);
+          deadlineDate.setHours(23,59,59,999);
+          let diffSeconds = (deadlineDate.getTime() - now.getTime()) / 1000;
+          if (diffSeconds <= 3600 && diffSeconds > 0) {
+            sendNotification("Tugas Mendekati Deadline", {
+              body: `Tugas "${task.tugas}" pada ${task.mapel} mendekati deadline!`,
+              icon: "https://via.placeholder.com/128"
+            });
+            task.deadlineNotified = true;
+          }
+        }
+      });
+    }
+
+    function checkStudyStartNotification() {
+      let now = new Date();
+      let currentDay = daysMap[now.getDay()];
+      if (studyStartTimes[currentDay] && !isRunning && isStudySession) {
+        let [setHour, setMinute] = studyStartTimes[currentDay].split(':').map(Number);
+        let targetTime = new Date(now);
+        targetTime.setHours(setHour, setMinute, 0, 0);
+        let diffSeconds = (targetTime.getTime() - now.getTime()) / 1000;
+        if (diffSeconds > 0 && diffSeconds <= 300) {
+          sendNotification("Pengingat Belajar", {
+            body: "5 menit lagi mulai waktu belajar!",
+            icon: "https://via.placeholder.com/128"
+          });
+        }
+      }
+    }
+
+    let studyStartTimes = {}; 
+    let saveStartTimeBtn = document.getElementById('saveStartTime');
+    let startDaySelect = document.getElementById('startDay');
+    let startTimeInput = document.getElementById('startTime');
+    saveStartTimeBtn.addEventListener('click', () => {
+      let day = startDaySelect.value;
+      let time = startTimeInput.value;
+      if (day && time) {
+        studyStartTimes[day] = time;
+        showAlert('Jam Belajar Disimpan', `Jam belajar untuk ${day} disetel ke ${time}.`, 'success');
+      } else {
+        showAlert('Gagal', 'Pilih hari dan masukkan jam belajar dengan benar.', 'error');
+      }
+    });
+
+    setInterval(checkTaskDeadlineNotifications, 60000);  // cek deadline setiap menit
+    setInterval(checkStudyStartNotification, 30000);     // cek jam mulai belajar setiap 30 detik
+
   </script>
 </body>
 </html>
