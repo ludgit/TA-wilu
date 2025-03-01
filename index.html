@@ -20,7 +20,7 @@
 
   <!-- Konten Utama -->
   <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 relative">
-
+    
     <!-- Bagian Timer -->
     <div id="timerSection" class="mb-8">
       <div id="timer" class="text-5xl font-bold text-white bg-red-500 p-6 rounded-lg shadow-md text-center">
@@ -115,13 +115,14 @@
         <ul id="subjectList" class="mt-2 space-y-2"></ul>
       </div>
     </div>
+
   </div>
 
   <script>
     // =================== TOMBOL AKTIFKAN NOTIFIKASI (USER GESTURE) ===================
     const enableNotifBtn = document.getElementById('enableNotifBtn');
-    if ("Notification" in window) {
-      enableNotifBtn.addEventListener('click', () => {
+    enableNotifBtn.addEventListener('click', () => {
+      if ("Notification" in window) {
         Notification.requestPermission().then(permission => {
           if (permission === "granted") {
             new Notification("Notifikasi diizinkan!", {
@@ -129,30 +130,24 @@
               icon: "https://via.placeholder.com/128"
             });
           } else {
-            // fallback atau pesan
             console.log("Notifikasi tidak diizinkan oleh user.");
           }
         });
-      });
-    } else {
-      // Browser tidak mendukung Notification API
-      enableNotifBtn.addEventListener('click', () => {
+      } else {
         Swal.fire({
           title: "Not Supported",
           text: "Browser ini tidak mendukung Notification API.",
           icon: "error",
           confirmButtonText: "OK"
         });
-      });
-    }
+      }
+    });
 
     // =================== FUNGSI UTAMA NOTIFIKASI ===================
     function sendNotification(title, options) {
-      // Hanya kirim notifikasi native jika diizinkan
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification(title, options);
       } else {
-        // Fallback: SweetAlert2
         Swal.fire({ title, text: options.body, icon: options.icon || "info", confirmButtonText: "OK" });
       }
     }
@@ -289,8 +284,8 @@
     updateTimerBackground();
 
     // =================== DATA & VARIABEL TUGAS & JADWAL ===================
-    let subjectSchedule = [];  // Array untuk jadwal pelajaran
-    let tasks = [];            // Array untuk tugas
+    let subjectSchedule = [];
+    let tasks = [];
 
     // =================== BAGIAN TUGAS ===================
     let taskMapelInput = document.getElementById('taskMapel');
@@ -478,9 +473,8 @@
       }
     });
 
-    setInterval(checkTaskDeadlineNotifications, 60000);  // cek deadline setiap menit
-    setInterval(checkStudyStartNotification, 10000);     // cek jam mulai belajar setiap 10 detik
-
+    setInterval(checkTaskDeadlineNotifications, 60000);  // setiap menit
+    setInterval(checkStudyStartNotification, 30000);       // setiap 30 detik
   </script>
 </body>
 </html>
