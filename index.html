@@ -11,15 +11,8 @@
 </head>
 <body class="bg-gray-100 text-gray-900 p-4">
 
-  <!-- Tombol Aktifkan Notifikasi (User Gesture) -->
-  <div class="flex justify-end mb-4">
-    <button id="enableNotifBtn" class="bg-teal-500 text-white px-4 py-2 rounded shadow hover:bg-teal-600">
-      Aktifkan Notifikasi
-    </button>
-  </div>
-
   <!-- Konten Utama -->
-  <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 relative">
+  <div id="mainContainer" class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8 relative">
     
     <!-- Bagian Timer -->
     <div id="timerSection" class="mb-8">
@@ -27,7 +20,7 @@
         25:00
       </div>
       <!-- Tombol Timer + Tombol Mode Fokus -->
-      <div class="flex flex-wrap justify-center gap-4 mt-4">
+      <div id="timerButtons" class="flex flex-wrap justify-center gap-4 mt-4">
         <button id="startBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg shadow hover:bg-blue-700">Mulai</button>
         <button id="pauseBtn" class="bg-yellow-500 text-white px-6 py-2 rounded-lg shadow hover:bg-yellow-600">Pause</button>
         <button id="resetBtn" class="bg-red-500 text-white px-6 py-2 rounded-lg shadow hover:bg-red-600">Reset</button>
@@ -78,11 +71,8 @@
     <div id="tasksSection" class="nonFocus mb-8">
       <h2 class="text-xl font-semibold text-gray-700 mb-2">Tambah Tugas</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Input Mapel -->
         <input id="taskMapel" type="text" placeholder="Mapel (misal: IPA, MTK, dll.)" class="border p-2 rounded w-full" />
-        <!-- Input Tugas -->
         <input id="taskDescription" type="text" placeholder="Tugas (misal: Mencatat Bab 1)" class="border p-2 rounded w-full" />
-        <!-- Input Deadline (tanggal lengkap) -->
         <input id="taskDeadline" type="date" class="border p-2 rounded w-full" />
       </div>
       <button id="addTask" class="bg-blue-500 text-white px-6 py-2 rounded-lg shadow mt-4 hover:bg-blue-600">
@@ -115,43 +105,9 @@
         <ul id="subjectList" class="mt-2 space-y-2"></ul>
       </div>
     </div>
-
   </div>
 
   <script>
-    // =================== TOMBOL AKTIFKAN NOTIFIKASI (USER GESTURE) ===================
-    const enableNotifBtn = document.getElementById('enableNotifBtn');
-    enableNotifBtn.addEventListener('click', () => {
-      if ("Notification" in window) {
-        Notification.requestPermission().then(permission => {
-          if (permission === "granted") {
-            new Notification("Notifikasi diizinkan!", {
-              body: "Sekarang notifikasi dapat muncul di desktop/mobile.",
-              icon: "https://via.placeholder.com/128"
-            });
-          } else {
-            console.log("Notifikasi tidak diizinkan oleh user.");
-          }
-        });
-      } else {
-        Swal.fire({
-          title: "Not Supported",
-          text: "Browser ini tidak mendukung Notification API.",
-          icon: "error",
-          confirmButtonText: "OK"
-        });
-      }
-    });
-
-    // =================== FUNGSI UTAMA NOTIFIKASI ===================
-    function sendNotification(title, options) {
-      if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(title, options);
-      } else {
-        Swal.fire({ title, text: options.body, icon: options.icon || "info", confirmButtonText: "OK" });
-      }
-    }
-
     // =================== TIMER LOGIC (Time-based) ===================
     const endSound = new Audio('assets/musics/end.mp3');
     let timerElement = document.getElementById('timer');
@@ -294,6 +250,25 @@
     let addTaskBtn = document.getElementById('addTask');
     let taskList = document.getElementById('taskList');
 
+    // Fungsi menghitung countdown ke deadline
+    function getCountdown(deadline) {
+      let now = new Date();
+      let end = new Date(deadline + "T00:00:00"); 
+      let diff = end - now; 
+      if (diff <= 0) {
+        return { text: "Lewat deadline", isOver: true };
+      }
+      let s = Math.floor(diff / 1000);
+      let d = Math.floor(s / 86400);
+      s %= 86400;
+      let h = Math.floor(s / 3600);
+      s %= 3600;
+      let m = Math.floor(s / 60);
+      s %= 60;
+      let text = `${d}h ${h}j ${m}m ${s}d`;
+      return { text, isOver: false };
+    }
+
     function displayAllTasks() {
       taskList.innerHTML = "";
       if (tasks.length === 0) {
@@ -303,13 +278,44 @@
       tasks.forEach((t, index) => {
         let li = document.createElement('li');
         li.className = "bg-gray-200 p-2 rounded flex justify-between items-center";
+
         let deadlineText = t.deadline ? new Date(t.deadline).toLocaleDateString() : '-';
-        li.innerHTML = `
-          <div>
-            <span class="font-semibold">${t.mapel}</span> - ${t.tugas}<br>
-            <small class="text-gray-600">Deadline: ${deadlineText}</small>
-          </div>
+        let countdown = t.deadline ? getCountdown(t.deadline) : null;
+        
+        let content = document.createElement('div');
+        content.innerHTML = `
+          <span class="font-semibold">${t.mapel}</span> - ${t.tugas}<br>
+          <small class="text-gray-600">Deadline: ${deadlineText}</small>
         `;
+        
+        let cdSpan = document.createElement('div');
+        cdSpan.className = "text-sm mt-1";
+        if (countdown) {
+          if (countdown.isOver && !t.isDone) {
+            cdSpan.innerHTML = `<span class="text-red-500 font-bold">Lewat deadline</span>`;
+            li.classList.add('border-2', 'border-red-500');
+          } else {
+            cdSpan.innerHTML = `<span class="text-blue-600">Countdown: ${countdown.text}</span>`;
+          }
+        }
+
+        if (t.isDone) {
+          content.style.textDecoration = "line-through";
+          cdSpan.style.textDecoration = "line-through";
+          li.classList.remove('border-2', 'border-red-500');
+        }
+
+        // Tombol centang ✔
+        let doneBtn = document.createElement('button');
+        doneBtn.innerText = "✔";
+        doneBtn.className = "text-green-500 ml-2";
+        doneBtn.onclick = () => {
+          t.isDone = !t.isDone; 
+          displayAllTasks();
+          displaySubjects();
+        };
+
+        // Tombol hapus X
         let deleteBtn = document.createElement('button');
         deleteBtn.innerText = "X";
         deleteBtn.className = "text-red-500 ml-2";
@@ -318,17 +324,35 @@
           displayAllTasks();
           displaySubjects();
         };
-        li.appendChild(deleteBtn);
+
+        let leftDiv = document.createElement('div');
+        leftDiv.appendChild(content);
+        leftDiv.appendChild(cdSpan);
+
+        let rightDiv = document.createElement('div');
+        rightDiv.appendChild(doneBtn);
+        rightDiv.appendChild(deleteBtn);
+
+        li.appendChild(leftDiv);
+        li.appendChild(rightDiv);
         taskList.appendChild(li);
       });
     }
+
+    // Interval setiap detik untuk update countdown
+    setInterval(displayAllTasks, 1000);
 
     addTaskBtn.addEventListener('click', () => {
       let mapelVal = taskMapelInput.value.trim();
       let tugasVal = taskDescriptionInput.value.trim();
       let deadlineVal = taskDeadlineInput.value;
       if (mapelVal && tugasVal && deadlineVal) {
-        tasks.push({ mapel: mapelVal, tugas: tugasVal, deadline: deadlineVal, deadlineNotified: false });
+        tasks.push({
+          mapel: mapelVal,
+          tugas: tugasVal,
+          deadline: deadlineVal,
+          isDone: false
+        });
         taskMapelInput.value = "";
         taskDescriptionInput.value = "";
         taskDeadlineInput.value = "";
@@ -360,6 +384,7 @@
     });
 
     const daysMap = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
     function getCurrentScheduleDay() {
       let now = new Date();
       if (now.getHours() >= 18) {
@@ -373,6 +398,7 @@
       let displayDay = getCurrentScheduleDay();
       scheduleTitle.innerText = `Jadwal untuk hari ${displayDay}`;
       let filtered = subjectSchedule.filter(item => item.day === displayDay);
+
       if (filtered.length === 0) {
         subjectList.innerHTML = `<li class='bg-gray-200 p-2 rounded'>Tidak ada jadwal untuk hari ini.</li>`;
       } else {
@@ -380,12 +406,12 @@
           let li = document.createElement('li');
           li.className = "bg-gray-200 p-2 rounded mb-2";
           let subjectHtml = `<div class="font-semibold text-lg">${item.subject}</div>`;
-          // Tampilkan tugas jika mapel sama dan jika deadline (hari dari deadline) sama dengan jadwal
+
+          // Tampilkan semua tugas yang mapelnya sama (tanpa cek hari)
           let matchedTasks = tasks.filter(t => {
-            if (!t.deadline) return false;
-            let taskDay = daysMap[new Date(t.deadline).getDay()];
-            return t.mapel.toLowerCase() === item.subject.toLowerCase() && taskDay === item.day;
+            return t.mapel.toLowerCase() === item.subject.toLowerCase();
           });
+
           if (matchedTasks.length > 0) {
             subjectHtml += `<ul class="ml-4 mt-1 list-disc">`;
             matchedTasks.forEach(taskItem => {
@@ -401,6 +427,7 @@
           } else {
             subjectHtml += `<div class="text-sm text-gray-600 ml-4 mt-1 italic">Tidak ada tugas</div>`;
           }
+
           li.innerHTML = subjectHtml;
           subjectList.appendChild(li);
         });
@@ -414,67 +441,26 @@
     let isFocusMode = false;
     let focusModeBtn = document.getElementById('focusModeBtn');
     focusModeBtn.addEventListener('click', toggleFocusMode);
+
     function toggleFocusMode() {
       isFocusMode = !isFocusMode;
+      
+      // Sembunyikan elemen dengan class 'nonFocus'
       document.querySelectorAll('.nonFocus').forEach(el => {
         el.classList.toggle('hidden', isFocusMode);
       });
+
+      // Ketika Mode Fokus aktif: ubah background body menjadi merah, center container
+      if (isFocusMode) {
+        document.body.classList.remove('bg-gray-100');
+        document.body.classList.add('bg-red-400', 'flex', 'items-center', 'justify-center', 'h-screen');
+      } else {
+        document.body.classList.remove('bg-red-400', 'flex', 'items-center', 'justify-center', 'h-screen');
+        document.body.classList.add('bg-gray-100');
+      }
+
       focusModeBtn.innerText = isFocusMode ? "Keluar Mode Fokus" : "Mode Fokus";
     }
-
-    // =================== NOTIFIKASI PUSH ===================
-    function checkTaskDeadlineNotifications() {
-      let now = new Date();
-      tasks.forEach(task => {
-        if (task.deadline && !task.deadlineNotified) {
-          let deadlineDate = new Date(task.deadline);
-          deadlineDate.setHours(23,59,59,999);
-          let diffSeconds = (deadlineDate.getTime() - now.getTime()) / 1000;
-          if (diffSeconds <= 3600 && diffSeconds > 0) {
-            sendNotification("Tugas Mendekati Deadline", {
-              body: `Tugas "${task.tugas}" pada ${task.mapel} mendekati deadline!`,
-              icon: "https://via.placeholder.com/128"
-            });
-            task.deadlineNotified = true;
-          }
-        }
-      });
-    }
-
-    function checkStudyStartNotification() {
-      let now = new Date();
-      let currentDay = daysMap[now.getDay()];
-      if (studyStartTimes[currentDay] && !isRunning && isStudySession) {
-        let [setHour, setMinute] = studyStartTimes[currentDay].split(':').map(Number);
-        let targetTime = new Date(now);
-        targetTime.setHours(setHour, setMinute, 0, 0);
-        let diffSeconds = (targetTime.getTime() - now.getTime()) / 1000;
-        if (diffSeconds > 0 && diffSeconds <= 300) {
-          sendNotification("Pengingat Belajar", {
-            body: "5 menit lagi mulai waktu belajar!",
-            icon: "https://via.placeholder.com/128"
-          });
-        }
-      }
-    }
-
-    let studyStartTimes = {}; 
-    let saveStartTimeBtn = document.getElementById('saveStartTime');
-    let startDaySelect = document.getElementById('startDay');
-    let startTimeInput = document.getElementById('startTime');
-    saveStartTimeBtn.addEventListener('click', () => {
-      let day = startDaySelect.value;
-      let time = startTimeInput.value;
-      if (day && time) {
-        studyStartTimes[day] = time;
-        showAlert('Jam Belajar Disimpan', `Jam belajar untuk ${day} disetel ke ${time}.`, 'success');
-      } else {
-        showAlert('Gagal', 'Pilih hari dan masukkan jam belajar dengan benar.', 'error');
-      }
-    });
-
-    setInterval(checkTaskDeadlineNotifications, 60000);  // setiap menit
-    setInterval(checkStudyStartNotification, 30000);       // setiap 30 detik
   </script>
 </body>
 </html>
